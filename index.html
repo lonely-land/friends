@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>是这些伙伴们构成了我</title>
+<style>
+  :root{
+    --ink:#0b0b0b;
+    --paper:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{
+    height:100%;
+    background:var(--paper);
+    color:var(--ink);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  }
+
+  .stage{position:fixed;inset:0;overflow:hidden}
+
+  /* ---------- 流动名字层 ---------- */
+  .tracks{
+    position:absolute;inset:0;
+    overflow:hidden;
+  }
+
+  /* 每行文字各自一块白色长方体，四边向外渐隐；随标题一起淡入 */
+  .veils{
+    position:absolute;inset:0;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 1.15s ease;
+  }
+  .veils.in{opacity:1}
+  .veils i{
+    position:absolute;
+    display:block;
+    background:#fff;
+  }
+
+  .row{
+    position:absolute;
+    left:0;right:0;
+    display:flex;
+    align-items:center;
+    white-space:nowrap;
+  }
+  .strip{
+    display:inline-flex;
+    flex:0 0 auto;
+    white-space:nowrap;
+    will-change:transform;
+    animation-name:marquee;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+  }
+  @keyframes marquee{
+    from{transform:translate3d(0,0,0)}
+    to{transform:translate3d(-50%,0,0)}
+  }
+
+  .nm{
+    display:inline-block;
+    text-decoration:none;
+    color:rgba(11,11,11,.42);
+    letter-spacing:.02em;
+    line-height:1;
+    transition:color .18s ease;
+  }
+  .nm:hover{color:var(--ink)}
+
+  /* ---------- 中央标题 ---------- */
+  .hero{
+    position:absolute;inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+    z-index:2;
+  }
+  .hero h1{
+    flex:0 0 auto;
+    text-align:center;
+    font-weight:400;
+    font-size:clamp(24px, min(7.8vw, 10.4vh), 82px);
+    line-height:1.30;
+    letter-spacing:.02em;
+    opacity:0;
+    transform:translateY(10px);
+    filter:blur(12px);
+    transition:opacity 1.05s ease, transform 1.35s cubic-bezier(.2,.85,.25,1), filter 1.05s ease;
+    text-shadow:0 0 1px #fff, 0 0 14px #fff, 0 0 28px #fff, 0 0 50px #fff, 0 0 78px #fff;
+  }
+  .hero.in h1{opacity:1;transform:none;filter:blur(0)}
+  .hero.static h1{opacity:1;transform:none;filter:none;transition:none}
+  .hero h1 span{
+    display:block;
+    width:max-content;
+    margin:0 auto;
+  }
+
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="tracks" id="tracks"></div>
+  <div class="veils" id="veils"></div>
+  <div class="hero" id="hero">
+    <h1><span>是这些伙伴们构成了</span><span>我</span></h1>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ====== 在这里换成你的友链（name = 显示名，url = 跳转地址）====== */
+  const LINKS = [
+    { name: '阿岚',     url: '#' },
+    { name: 'Nova',     url: '#' },
+    { name: '橘子汽水', url: '#' },
+    { name: 'Kiro',     url: '#' },
+    { name: '墨白',     url: '#' },
+    { name: 'Yui',      url: '#' },
+    { name: 'Echo',     url: '#' },
+    { name: '小满',     url: '#' },
+    { name: 'Pixel',    url: '#' },
+    { name: '青岚',     url: '#' }
+  ];
+  /* ============================================================== */
+
+  const STATIC = /[?&]static\b/.test(location.search);
+  const ALT = !/[?&]alt=0\b/.test(location.search);   // 隔行反向滚动（默认开，?alt=0 关）
+  const DEG = (function () {                        // 名字墙的倾斜角度，?deg=-4
+    const m = location.search.match(/[?&]deg=(-?[0-9.]+)/);
+    const v = m ? parseFloat(m[1]) : -8;
+    return Math.max(-20, Math.min(20, isNaN(v) ? 0 : v));
+  })();
+  const stage = document.getElementById('tracks');
+  const veils = document.getElementById('veils');
+  const hero  = document.getElementById('hero');
+
+  let resizeTimer = 0;
+  let heroTimer = 0;
+
+  const rnd = function (a, b) { return a + Math.random() * (b - a); };
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  // 粗略估宽：中文≈1em，拉丁≈0.58em
+  function estWidth(str, fs) {
+    let w = 0;
+    for (let i = 0; i < str.length; i++) {
+      w += str.charCodeAt(i) > 0x2e80 ? fs : fs * 0.58;
+    }
+    return w;
+  }
+
+  function makeLink(link, dup) {
+    const a = document.createElement('a');
+    a.className = 'nm';
+    a.href = link.url || '#';
+    if (/^https?:/i.test(link.url || '')) {
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    }
+    a.textContent = link.name;
+    if (dup) a.setAttribute('aria-hidden', 'true');
+    return a;
+  }
+
+  function fitHero() {
+    const h1 = hero.querySelector('h1');
+    h1.style.fontSize = '';
+    const vw = window.innerWidth;
+    const w = h1.getBoundingClientRect().width;
+    if (w > vw * 0.92) {
+      const cur = parseFloat(getComputedStyle(h1).fontSize);
+      h1.style.fontSize = (cur * (vw * 0.92) / w).toFixed(2) + 'px';
+    }
+  }
+
+  // 整片名字墙倾斜；旋转后按外接矩形放大，避免四角露白
+  function applyTilt() {
+    if (!DEG) { stage.style.transform = ''; return; }
+    const W = window.innerWidth, H = window.innerHeight;
+    const rad = Math.abs(DEG) * Math.PI / 180;
+    const k = Math.max(
+      (W * Math.cos(rad) + H * Math.sin(rad)) / W,
+      (W * Math.sin(rad) + H * Math.cos(rad)) / H
+    ) * 1.03;
+    stage.style.transformOrigin = '50% 50%';
+    stage.style.transform = 'rotate(' + DEG + 'deg) scale(' + k.toFixed(3) + ')';
+  }
+
+  // 每行文字各自一个长方体：宽度取该行自身宽度，四边用 box-shadow 向外渐隐
+  function layoutVeil() {
+    const spans = hero.querySelectorAll('h1 span');
+    veils.textContent = '';
+    for (let i = 0; i < spans.length; i++) {
+      const r = spans[i].getBoundingClientRect();
+      if (!r.width) continue;
+      const f = Math.max(18, Math.min(52, r.height * 0.30));
+      const d = document.createElement('i');
+      d.style.left = r.left.toFixed(1) + 'px';
+      d.style.top = r.top.toFixed(1) + 'px';
+      d.style.width = r.width.toFixed(1) + 'px';
+      d.style.height = r.height.toFixed(1) + 'px';
+      d.style.boxShadow = '0 0 ' + f.toFixed(0) + 'px ' + (f * 0.30).toFixed(0) + 'px #fff';
+      veils.appendChild(d);
+    }
+  }
+
+  function build() {
+    clearTimeout(heroTimer);
+    hero.classList.remove('in');
+    veils.classList.remove('in');
+    stage.textContent = '';
+    fitHero();
+
+    const W = Math.max(320, window.innerWidth);
+    const H = Math.max(360, window.innerHeight);
+
+    // 密度：行距、字号、名字间隙
+    const rowGap = Math.max(26, Math.min(58, H / 26));
+    const y0 = rowGap * 0.9;
+    const rows = Math.max(8, Math.ceil((H - y0) / rowGap) + 3);  // 多铺几行，倾斜后也不留白
+    const fs = Math.max(11, Math.min(20, H / 58));
+    const gap = Math.round(fs * 1.45);
+
+    const pool = shuffle(LINKS.slice());
+    const frag = document.createDocumentFragment();
+
+    for (let i = 0; i < rows; i++) {
+      const cy = y0 + i * rowGap;
+
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.style.top = (cy - rowGap / 2).toFixed(1) + 'px';
+      row.style.height = rowGap.toFixed(1) + 'px';
+      row.style.fontSize = fs.toFixed(1) + 'px';
+
+      const strip = document.createElement('div');
+      strip.className = 'strip';
+
+      // 一份内容：铺到比屏幕更宽，保证滚动时不露白
+      const seq = [];
+      let est = 0, n = 0;
+      while (est < W * 1.35 && n < 400) {
+        const link = pool[(i * 3 + n) % pool.length];
+        seq.push(link);
+        est += estWidth(link.name, fs) + gap;
+        n++;
+      }
+
+      // 两份完全相同的副本 → translate3d(-50%) 无缝
+      for (let c = 0; c < 2; c++) {
+        for (let k = 0; k < seq.length; k++) {
+          const a = makeLink(seq[k], c === 1);
+          a.style.marginRight = gap + 'px';
+          strip.appendChild(a);
+        }
+      }
+
+      const speed = rnd(22, 44);
+      strip.style.animationDuration = (est / speed).toFixed(1) + 's';
+      strip.style.animationDelay = '-' + rnd(0, 60).toFixed(1) + 's';
+      if (ALT && i % 2 === 1) {
+        strip.style.animationDirection = 'reverse';
+        strip.style.animationDuration = (est / (speed * 1.35)).toFixed(1) + 's';
+      }
+
+      row.appendChild(strip);
+      frag.appendChild(row);
+
+      if (!STATIC) {
+        row.style.opacity = '0';
+        row.style.animation = 'fadeIn .7s ease ' + (i * 0.028).toFixed(3) + 's forwards';
+      }
+    }
+
+    stage.appendChild(frag);
+    applyTilt();
+    layoutVeil();
+
+    // 名字铺满后再上标题
+    if (STATIC) {
+      hero.classList.add('static');
+      veils.classList.add('in');
+    } else {
+      const total = rows * 0.028 + 0.75;
+      heroTimer = setTimeout(function () {
+        veils.classList.add('in');     // 方块和标题同时出现
+        hero.classList.add('in');
+      }, (total + 0.35) * 1000);
+    }
+  }
+
+  let lastW = window.innerWidth, lastH = window.innerHeight;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      const w = window.innerWidth, h = window.innerHeight;
+      if (Math.abs(w - lastW) < 3 && Math.abs(h - lastH) < 3) return;
+      lastW = w; lastH = h;
+      build();
+    }, 240);
+  });
+
+  build();
+})();
+</script>
+</body>
+</html>
