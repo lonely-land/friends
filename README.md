@@ -37,6 +37,11 @@ const LINKS = [
 5. **倾斜要补偿**：整层 `rotate()` 之后四角会露白，按外接矩形算了一个 `scale()` 顶上去。
 6. **行数取 `ceil + 3`**：多铺几行溢出边缘，任何视口高度都不会在底部露白。
 
+## 致谢
+
+- 灵感来源：[杨柳 WillowTree](https://willowtree1184.github.io)
+- 设计指导：Carleight Wu、斬馬
+
 ## License
 
 MIT © Lonely
