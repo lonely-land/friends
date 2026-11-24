@@ -195,7 +195,7 @@
     return a;
   }
 
-  // 标题：普通字符串一行；数组则变成竖向滚动的行，每 3s 切一次
+  // 标题：普通字符串一行；数组则变成竖向滚动的行，每 5s 切一次
   var rollTimers = [];
 
   function renderTitle(cfg) {
@@ -246,7 +246,7 @@
           i = 0;
         }, 660);
       }
-    }, 3000));
+    }, 5000));
   }
 
   function fitHero() {
