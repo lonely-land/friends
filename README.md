@@ -8,17 +8,26 @@
 
 ## 用
 
-单文件、零依赖，丢到任何静态托管（Cloudflare Pages / Vercel / GitHub Pages，或者一个 `python3 -m http.server`）就能跑。
+零依赖，丢到任何静态托管（Cloudflare Pages / Vercel / GitHub Pages，或者一个 `python3 -m http.server`）就能跑。
 
-改名字只需要动 `index.html` 顶部这一个数组：
+> **必须通过 http(s) 打开**：配置是用 `fetch` 读的，直接双击 `index.html`（`file://`）读不到 `config.json`。
 
-```js
-const LINKS = [
-  { name: '阿岚',     url: 'https://example.com' },
-  { name: 'Nova',     url: 'https://example.com' },
-  // ...
-];
+## 配置
+
+改 `config.json` 就行，不用碰代码：
+
+```json
+{
+  "title": ["是这些伙伴们构成了", "我"],
+  "links": [
+    { "name": "Lanying's Blog", "url": "https://blog.yufurry.cn" },
+    { "name": "Han", "url": "https://www.hhan.me/" }
+  ]
+}
 ```
+
+- `title`：标题，数组里每一项是一行
+- `links`：名字墙的名单；`name` 显示名、`url` 跳转地址；数量不限，会循环铺满
 
 ## URL 参数
 

@@ -121,20 +121,10 @@
 (function () {
   'use strict';
 
-  /* ====== 在这里换成你的友链（name = 显示名，url = 跳转地址）====== */
-  const LINKS = [
-    { name: '阿岚',     url: '#' },
-    { name: 'Nova',     url: '#' },
-    { name: '橘子汽水', url: '#' },
-    { name: 'Kiro',     url: '#' },
-    { name: '墨白',     url: '#' },
-    { name: 'Yui',      url: '#' },
-    { name: 'Echo',     url: '#' },
-    { name: '小满',     url: '#' },
-    { name: 'Pixel',    url: '#' },
-    { name: '青岚',     url: '#' }
-  ];
-  /* ============================================================== */
+  /* 友链、标题都从 config.json 读取（同目录） */
+  let LINKS = [];
+
+
 
   const STATIC = /[?&]static\b/.test(location.search);
   const ALT = !/[?&]alt=0\b/.test(location.search);   // 隔行反向滚动（默认开，?alt=0 关）
@@ -225,6 +215,7 @@
   }
 
   function build() {
+    if (!LINKS.length) LINKS = [{ name: 'FRIENDS', url: '#' }];
     clearTimeout(heroTimer);
     hero.classList.remove('in');
     veils.classList.remove('in');
@@ -320,7 +311,33 @@
     }, 240);
   });
 
-  build();
+  fetch('./config.json', { cache: 'no-cache' })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function (cfg) {
+      var links = (cfg.links || []).filter(function (l) { return l && l.name && l.url; });
+      if (links.length) LINKS = links;
+
+      var h1 = hero.querySelector('h1');
+      if (cfg.title && cfg.title.length && h1) {
+        h1.textContent = '';
+        cfg.title.forEach(function (line) {
+          var sp = document.createElement('span');
+          sp.textContent = line;
+          h1.appendChild(sp);
+        });
+      }
+      build();
+    })
+    .catch(function (err) {
+      console.error('[friends] 读取 config.json 失败:', err);
+      var tip = document.createElement('div');
+      tip.style.cssText = 'position:fixed;inset:0;display:grid;place-items:center;text-align:center;padding:24px;font:14px/1.9 system-ui,sans-serif;color:#999;line-height:1.9';
+      tip.innerHTML = '读取 config.json 失败<br><span style="font-size:12px">请通过 http(s) 打开 —— file:// 不能 fetch 本地 JSON</span>';
+      document.body.appendChild(tip);
+    });
 })();
 </script>
 </body>
