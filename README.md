@@ -28,6 +28,13 @@
 
 - `title`：标题，数组里每一项是一行
 - `links`：名字墙的名单；`name` 显示名、`url` 跳转地址；数量不限，会循环铺满
+- 每条可以带 `effects`，目前支持 `bold`：
+
+```json
+{ "name": "Han", "url": "https://www.hhan.me/", "effects": { "bold": true } }
+```
+
+把它设成 `true` 这个名字就会加粗，在整片名字墙里跳出来。
 
 ## URL 参数
 

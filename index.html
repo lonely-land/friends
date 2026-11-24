@@ -168,6 +168,7 @@
       a.rel = 'noopener noreferrer';
     }
     a.textContent = link.name;
+    if (link.effects && link.effects.bold) a.style.fontWeight = '700';
     if (dup) a.setAttribute('aria-hidden', 'true');
     return a;
   }
