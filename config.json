@@ -1,13 +1,24 @@
 {
   "title": ["是这些伙伴们构成了", "我"],
   "links": [
-    { "name": "蓝影 Shadow", "url": "https://blog.yufurry.cn",     "effects": { "bold": false } },
-    { "name": "初叶",        "url": "https://www.chuyel.cn",        "effects": { "bold": false } },
-    { "name": "陨落基围虾",  "url": "https://fshrimp.top",          "effects": { "bold": false } },
-    { "name": "apanzinc",    "url": "https://apanzinc.top",         "effects": { "bold": false } },
-    { "name": "hhcl233",     "url": "https://hhcl233.github.io/new-home/", "effects": { "bold": false } },
-    { "name": "Sylphy",      "url": "https://blog.0xd3ac.dev",      "effects": { "bold": false } },
-    { "name": "无名",        "url": "https://blog.0xnm.cn/",        "effects": { "bold": false } },
-    { "name": "Han",         "url": "https://www.hhan.me/",         "effects": { "bold": false } }
+    { "name": "蓝影 Shadow",     "url": "https://blog.yufurry.cn",     "effects": { "bold": false } },
+    { "name": "初叶",            "url": "https://www.chuyel.cn",        "effects": { "bold": false } },
+    { "name": "陨落基围虾",      "url": "https://fshrimp.top",          "effects": { "bold": false } },
+    { "name": "apanzinc",        "url": "https://apanzinc.top",         "effects": { "bold": false } },
+    { "name": "hhcl233",         "url": "https://hhcl233.github.io/new-home/", "effects": { "bold": false } },
+    { "name": "Sylphy",          "url": "https://blog.0xd3ac.dev",      "effects": { "bold": false } },
+    { "name": "无名",            "url": "https://blog.0xnm.cn/",        "effects": { "bold": false } },
+    { "name": "Han",             "url": "https://www.hhan.me/",         "effects": { "bold": false } },
+    { "name": "Avon Bantour",                                            "effects": { "bold": false } },
+    { "name": "斬馬",                                                    "effects": { "bold": true  } },
+    { "name": "喔糖圆鼠",                                                "effects": { "bold": false } },
+    { "name": "color",                                                   "effects": { "bold": false } },
+    { "name": "臧小毅",          "url": "https://zangxiaoyi.top",        "effects": { "bold": false } },
+    { "name": "HSdianZD",                                                "effects": { "bold": false } },
+    { "name": "小月汐",                                                  "effects": { "bold": false } },
+    { "name": "北尘",                                                    "effects": { "bold": false } },
+    { "name": "杨柳 WillowTree", "url": "https://willowtree1184.github.io", "effects": { "bold": false } },
+    { "name": "旧梦残颜",                                                "effects": { "bold": false } },
+    { "name": "LSA",                                                     "effects": { "bold": false } }
   ]
 }
