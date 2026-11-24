@@ -104,6 +104,23 @@
     width:max-content;
     margin:0 auto;
   }
+  /* 可滚动的标题行：一列文字，定时上滚 */
+  .hero h1 .roll{
+    height:1.3em;
+    overflow:hidden;
+  }
+  .hero h1 .roll-inner{
+    display:block;
+    transition:transform .62s cubic-bezier(.22,.8,.2,1);
+  }
+  .hero h1 .roll-inner > div{
+    height:1.3em;
+    line-height:1.3;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+  }
 
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 </style>
@@ -176,6 +193,60 @@
     if (link.effects && link.effects.bold) a.style.fontWeight = '700';
     if (dup) a.setAttribute('aria-hidden', 'true');
     return a;
+  }
+
+  // 标题：普通字符串一行；数组则变成竖向滚动的行，每 3s 切一次
+  var rollTimers = [];
+
+  function renderTitle(cfg) {
+    var h1 = hero.querySelector('h1');
+    if (!h1 || !cfg.title || !cfg.title.length) return;
+    h1.textContent = '';
+
+    cfg.title.forEach(function (line) {
+      var sp = document.createElement('span');
+
+      if (Array.isArray(line) && line.length) {
+        sp.className = 'roll';
+        var inner = document.createElement('div');
+        inner.className = 'roll-inner';
+
+        var items = line.slice();
+        items.push(line[0]);                 // 末尾补一份首项，滚动到底无缝接回
+
+        items.forEach(function (txt, i) {
+          var d = document.createElement('div');
+          d.textContent = txt;
+          if (i === line.length) d.setAttribute('aria-hidden', 'true');
+          inner.appendChild(d);
+        });
+
+        sp.appendChild(inner);
+        h1.appendChild(sp);
+        startRoll(inner, line.length);
+      } else {
+        sp.textContent = line;
+        h1.appendChild(sp);
+      }
+    });
+  }
+
+  function startRoll(inner, count) {
+    var i = 0;
+    rollTimers.push(setInterval(function () {
+      i++;
+      inner.style.transform = 'translateY(-' + (i * 1.3) + 'em)';
+      if (i >= count) {
+        // 滚到克隆的那一项后，无动画瞬回起点
+        setTimeout(function () {
+          inner.style.transition = 'none';
+          inner.style.transform = 'translateY(0)';
+          void inner.offsetWidth;
+          inner.style.transition = '';
+          i = 0;
+        }, 660);
+      }
+    }, 3000));
   }
 
   function fitHero() {
@@ -326,15 +397,7 @@
       var links = (cfg.links || []).filter(function (l) { return l && l.name; });
       if (links.length) LINKS = links;
 
-      var h1 = hero.querySelector('h1');
-      if (cfg.title && cfg.title.length && h1) {
-        h1.textContent = '';
-        cfg.title.forEach(function (line) {
-          var sp = document.createElement('span');
-          sp.textContent = line;
-          h1.appendChild(sp);
-        });
-      }
+      renderTitle(cfg);
       build();
     })
     .catch(function (err) {
